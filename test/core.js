@@ -54,7 +54,7 @@ contract('metaMeta', (accounts) => {
     it('should sell NFt at fix price', async () =>{
         assert.equal(await collection.owner.call(), master.address);
         //sell NFT 1
-        await master.sell(collection_address, 1, 0, zero_address, 10000, 2655964022, {from: accounts[1]});
+        await master.sell(collection_address, 1, 0, zero_address, 10000, 5000, {from: accounts[1]});
         assert.equal(await collection.ownerOf.call(1), salePlain.address);
         sale_info = await salePlain.getSaleInfo.call(collection_address, 1);
         assert.equal(sale_info[0], true);
@@ -65,7 +65,7 @@ contract('metaMeta', (accounts) => {
         assert.equal(await master.getSalesCountByUser.call(accounts[1]), 1);
         sale_id_nft1 = await salePlain.getSaleId.call(collection_address, 1);
         await salePlain.updatePrice(sale_id_nft1, zero_address, 100000, {from: accounts[1]});
-        await salePlain.updateDuration(sale_id_nft1, 2655964022, {from: accounts[1]});
+        await salePlain.updateDuration(sale_id_nft1, 5000, {from: accounts[1]});
         assert.equal(await master.feeCollector.call(), accounts[0]);
         assert.equal(await collection.royaltiesReceiver.call(), accounts[5]);
         //buy NFT 1
@@ -75,7 +75,7 @@ contract('metaMeta', (accounts) => {
         assert.equal(await master.getUserBuysCount.call(accounts[2]), 1);
         //mint and sell NFT2
         await master.mintAndSell(collection_address, 'nft2',
-            0, testCoinA.address, 100000, 2655964022, {from: accounts[1]});
+            0, testCoinA.address, 100000, 500, {from: accounts[1]});
         assert.equal(await master.getSalesCountByUser.call(accounts[1]), 1);
         assert.equal(await master.getSalesCount.call(), 1);
         balance50 = await testCoinA.balanceOf.call(accounts[5]);
@@ -90,7 +90,7 @@ contract('metaMeta', (accounts) => {
     it('should sell NFt by auction', async () =>{
         //mint and sell NFT 3
         await master.mintAndSell(collection_address, 'nft3',
-            1, zero_address, 100000, (Date.now()+50000).toString().substr(0,10), {from: accounts[1]});
+            1, zero_address, 100000, 5000, {from: accounts[1]});
         //bid NFT 3
         sale_id_nft3 = await saleAuction.getSaleId.call(collection_address, 3);
         sale_info = await saleAuction.getSaleInfo.call(sale_id_nft3);
@@ -101,7 +101,7 @@ contract('metaMeta', (accounts) => {
         assert.equal(await master.getUserBidsCount.call(accounts[2]), 1);
         //mint and sell NFT 4
         await master.mintAndSell(collection_address, 'nft4',
-            1, testCoinA.address, 100, (Date.now()+2000).toString().substr(0,10), {from: accounts[1]});
+            1, testCoinA.address, 100, 2, {from: accounts[1]});
         //bid NFT 4
         sale_id_nft4 = await saleAuction.getSaleId.call(collection_address, 4);
         await testCoinA.getCoin(100000, {from: accounts[2]});
@@ -113,7 +113,7 @@ contract('metaMeta', (accounts) => {
         await saleAuction.bidWithToken(sale_id_nft4, 200, {from: accounts[3]});
         assert.equal(await master.getUserBidsCount.call(accounts[2]), 1);
         //wait for close
-        while(await saleAuction.claimable.call(sale_id_nft4, {from: accounts[3]})){
+        while(await saleAuction.claimable.call(sale_id_nft4, accounts[3], {from: accounts[3]})){
             await sleep(0.5);
         }
         await timeout(2000);
@@ -121,9 +121,9 @@ contract('metaMeta', (accounts) => {
         await testCoinA.getCoin(100000, {from: accounts[2]});
         //claim NFT 4
         sale_info = await saleAuction.getSaleInfo.call(sale_id_nft4);
-        console.log(sale_info);
+        //console.log(sale_info);
         assert.equal(sale_info[5], accounts[3]);
-        assert.equal(await saleAuction.claimable.call(sale_id_nft4, {from: accounts[3]}), true);
+        assert.equal(await saleAuction.claimable.call(sale_id_nft4, accounts[3], {from: accounts[3]}), true);
         await saleAuction.claim(sale_id_nft4, {from: accounts[3]});
         assert.equal(await master.getUserBidsCount.call(accounts[3]), 0);
         assert.equal(await master.getUserBuysCount.call(accounts[3]), 1);

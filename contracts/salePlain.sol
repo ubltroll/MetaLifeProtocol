@@ -22,13 +22,14 @@ contract salePlain is ISales, RecordPacker{
     constructor(address master){
         masterAddress = master;
     }
-    
+
     //Owner Interaction
     function create(address _contract, uint _tokenId, address seller,
-        address _token, uint _price, uint _due) external override returns (uint record){
+        address _token, uint _price, uint _duration) external override returns (uint record){
             //check
             require(IERC721(_contract).ownerOf(_tokenId) == address(this));
-            require(_due > block.timestamp, 'Time underflow');
+            uint _due = _duration + block.timestamp;
+            if (_due > type(uint64).max) _due = type(uint64).max;
             require(_price == uint256(uint128(_price)), 'Price overflow');
             //update
             record = packRecord(_contract, uint96(_tokenId));
@@ -63,11 +64,12 @@ contract salePlain is ISales, RecordPacker{
             saleItems[_saleId].token, saleItems[_saleId].price, saleItems[_saleId].duetime);
     }
 
-    function updateDuration(uint _saleId, uint _due) external override{
+    function updateDuration(uint _saleId, uint _duration) external override{
         (address _contract, uint _tokenId) = resovleRecord(_saleId);
         //check
         require(saleItems[_saleId].seller == msg.sender , 'Not owner or item sold');
-        require(_due > block.timestamp, 'Time underflow');
+        uint _due = _duration + block.timestamp;
+        if (_due > type(uint64).max) _due = type(uint64).max;
         //update
         saleItems[_saleId].duetime = uint64(_due);
         //record
@@ -129,8 +131,9 @@ contract salePlain is ISales, RecordPacker{
         return;
     }
 
-    function claimable(uint _saleId) external pure override returns (bool){
+    function claimable(uint _saleId, address _claimer) external pure override returns (bool){
         _saleId;
+        _claimer;
         return false;
     }
 

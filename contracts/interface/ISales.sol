@@ -17,7 +17,7 @@ interface ISales{
     function bidWithValue(uint _saleId) external payable;
     function bidWithToken(uint _saleId, uint _amount) external;
     function claim(uint _saleId) external;
-    function claimable(uint _saleId) external view returns (bool);
+    function claimable(uint _saleId, address _claimer) external view returns (bool);
     //Views
     function getSaleId(address _contract, uint _tokenId) external view returns (uint _saleId);
     function getSaleInfo(uint _saleId) external view returns (bool _isOpen, address _token, uint _price, uint _due, address seller, address _bidder);

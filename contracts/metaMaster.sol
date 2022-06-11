@@ -62,13 +62,13 @@ contract metaMaster is Ownable, NFTInfoStorage{
     //------------
 
     function sell(address collection, uint token_id,
-        uint market, address _token, uint _price, uint _due) public {
+        uint market, address _token, uint _price, uint _duration) public {
         require(market < marketSales.length, "Wrong market");
         require(IERC721(collection).ownerOf(token_id) == msg.sender, "Not owner");
         require(tokenIsSupported[_token], "Wrong token");
         require(_price == uint256(uint128(_price)), "Price overflow");
         NFTCollection(collection).transferByMaster(msg.sender, marketSales[market], token_id);
-        ISales(marketSales[market]).create(collection, token_id, msg.sender, _token, _price, _due);
+        ISales(marketSales[market]).create(collection, token_id, msg.sender, _token, _price, _duration);
     }
 
     //------------
@@ -100,9 +100,18 @@ contract metaMaster is Ownable, NFTInfoStorage{
     }
 
     function mintAndSell(address _collection, string memory _hash,
-        uint market, address _token, uint _price, uint _due) external {
+        uint market, address _token, uint _price, uint _duration) external {
         uint _tokenId = mint(_collection, msg.sender, _hash);
-        sell(_collection, _tokenId, market, _token, _price, _due);
+        sell(_collection, _tokenId, market, _token, _price, _duration);
+    }
+
+    //------------
+    //transfer NFT
+    //------------
+
+    function transfer(address _collection, uint _tokenId, address _recipient) public{
+        require(IERC721(_collection).ownerOf(_tokenId) == msg.sender);
+        NFTCollection(_collection).transferByMaster(msg.sender, _recipient, _tokenId);
     }
 
     //------------
@@ -114,4 +123,6 @@ contract metaMaster is Ownable, NFTInfoStorage{
         feeInBips = 250;
         tokenIsSupported[address(0)] = true;
     }
+
+
 }

@@ -26,10 +26,11 @@ contract saleAuction is ISales, RecordPacker{
 
     //Owner Interaction
     function create(address _contract, uint _tokenId, address seller,
-        address _token, uint _price, uint _due) external override returns (uint record){
+        address _token, uint _price, uint _duration) external override returns (uint record){
             //check
             require(IERC721(_contract).ownerOf(_tokenId) == address(this));
-            require(_due > block.timestamp, 'Time underflow');
+            uint _due = _duration + block.timestamp;
+            if (_due > type(uint64).max) _due = type(uint64).max;
             require(_price == uint256(uint128(_price)), 'Price overflow');
             //update
             record = packRecord(_contract, uint96(_tokenId));
@@ -66,11 +67,12 @@ contract saleAuction is ISales, RecordPacker{
             saleItems[_saleId].token, saleItems[_saleId].price, saleItems[_saleId].duetime);
     }
 
-    function updateDuration(uint _saleId, uint _due) external override{
+    function updateDuration(uint _saleId, uint _duration) external override{
         (address _contract, uint _tokenId) = resovleRecord(_saleId);
         //check
         require(saleItems[_saleId].seller == msg.sender , 'Not owner or item sold');
-        require(_due > block.timestamp, 'Time underflow');
+        uint _due = _duration + block.timestamp;
+        if (_due > type(uint64).max) _due = type(uint64).max;
         require(saleItems[_saleId].bidder == address(0) , 'Has bid!');
         //update
         saleItems[_saleId].duetime = uint64(_due);
@@ -133,7 +135,7 @@ contract saleAuction is ISales, RecordPacker{
     function claim(uint _saleId) external override{
         //check
         (address _contract, uint _tokenId) = resovleRecord(_saleId);
-        require(claimable(_saleId), 'Cannot claim');
+        require(claimable(_saleId, msg.sender), 'Cannot claim');
         //handle payment
         uint _amount = saleItems[_saleId].price;
         (address royaltiesReceiver, uint royalties) = NFTCollection(_contract).royaltyInfo(_tokenId, _amount);
@@ -159,8 +161,8 @@ contract saleAuction is ISales, RecordPacker{
         delete saleItems[_saleId];
     }
 
-    function claimable(uint _saleId) public override view returns (bool){
-        return saleItems[_saleId].duetime <= block.timestamp && saleItems[_saleId].bidder == msg.sender;
+    function claimable(uint _saleId, address _claimer) public override view returns (bool){
+        return saleItems[_saleId].duetime <= block.timestamp && saleItems[_saleId].bidder == _claimer;
     }
 
     //Views
