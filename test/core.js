@@ -12,17 +12,16 @@ contract('metaMeta', (accounts) => {
     zero_address = "0x0000000000000000000000000000000000000000";
     let testCoinA, master, salePlain, saleAuction;
     let collection_address;
-    before(async() => {
+    it('should be configed properly', async () =>{
         if(!testCoinA) testCoinA = await TestCoinA.new();
         master = await MetaMaster.deployed();
         salePlain = await SalePlain.deployed();
         saleAuction = await SaleAuction.deployed();
-      });
-    it('should be configed properly', async () =>{
         assert.equal(await master.owner.call(), accounts[0]);
         //config market
         master.addMarketSale(salePlain.address, { from: accounts[0]});
         master.addMarketSale(saleAuction.address, { from: accounts[0]});
+        assert.equal(await master.marketSalesNum.call(), 2);
         assert.equal(await master.marketSales.call(0), salePlain.address);
         assert.equal(await master.marketSales.call(1), saleAuction.address);
         //config token support

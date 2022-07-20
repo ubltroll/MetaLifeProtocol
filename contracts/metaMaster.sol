@@ -16,6 +16,9 @@ contract metaMaster is Ownable, NFTInfoStorage{
     mapping(address => address) public collectionOwner;
     mapping (address => address[]) public userOwnedCollections;
 
+    mapping(uint256 => address) public createdCollections;
+    uint256 public createdCollectionNum;
+
     function userOwnedCollectionNum(address user) public view returns(uint){
         return userOwnedCollections[user].length;
     }
@@ -30,6 +33,8 @@ contract metaMaster is Ownable, NFTInfoStorage{
         _collection.setRoyaltiesReceiver(royaltiesReceiver);
         collectionOwner[address(_collection)] = msg.sender;
         userOwnedCollections[msg.sender].push(address(_collection));
+        createdCollections[createdCollectionNum] = address(_collection);
+        createdCollectionNum ++;
         emit NewCollection(msg.sender, address(_collection));
         return address(_collection);
     }
@@ -56,6 +61,10 @@ contract metaMaster is Ownable, NFTInfoStorage{
         marketSales.push(_sale);
         setSale(_sale, true);
     }
+
+    function marketSalesNum() public view returns(uint256){
+        return marketSales.length;
+    } 
 
     //------------
     //sales: interaction

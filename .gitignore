@@ -1,1 +1,6 @@
 shit
+.*/
+artifacts
+build/*
+node_modules
+build

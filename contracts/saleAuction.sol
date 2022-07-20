@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './metaMaster.sol';
 import './NFTInfoStorage.sol';
 import './RecordPacker.sol';
 import './NFTCollection.sol';
 
-contract saleAuction is ISales, RecordPacker{
+contract saleAuction is ISales, RecordPacker, IERC721Receiver{
     struct saleAuctionItem {
        address seller;
        address token;
@@ -183,5 +184,14 @@ contract saleAuction is ISales, RecordPacker{
     function getSaleInfo(address _contract, uint _tokenId) public override view
     returns (bool, address, uint, uint, address, address){
         return getSaleInfo(getSaleId(_contract, _tokenId));
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public virtual override returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }
